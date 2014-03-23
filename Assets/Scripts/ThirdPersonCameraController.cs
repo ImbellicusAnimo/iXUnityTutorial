@@ -18,10 +18,10 @@ public class ThirdPersonCameraController : MonoBehaviour {
 	float currentDistance = 10.0f;
 	float targetDistance;
 	public float correctionSpeed = 10.0f;
-	public float zoomSpeed = 2.0f;
+	public float zoomSpeed = 10.0f;
 
 	bool isHoming = true;
-	float homingSpeed = 3.0f;
+	float homingSpeed = 5.0f;
 
 	
 	
@@ -53,10 +53,15 @@ public class ThirdPersonCameraController : MonoBehaviour {
 		}
 
 		float lastXAngle = xAngle;
+
 		if(Input.GetMouseButton(0)) { // rotation around character
 			isHoming = false;
 			xAngle += mouseY * Time.deltaTime * sensitivity;
 			yAngle += mouseX * Time.deltaTime * sensitivity;
+		}
+
+		if(Input.GetMouseButton(1)){
+			xAngle += mouseY * Time.deltaTime * sensitivity;
 		}
 
 		if(isHoming) { // smooth reset of y-rotation
@@ -74,16 +79,19 @@ public class ThirdPersonCameraController : MonoBehaviour {
 		// check for terrian collisions with camera sphere
 		int layerMask = 1 << LayerMask.NameToLayer("Terrain");
 		RaycastHit hit = new RaycastHit();
+
 		Vector3 rayDirection = this.transform.position - target.position;
 		if(Physics.SphereCast(target.position, cameraRadius, rayDirection, out hit, targetDistance, layerMask)) {
 			distanceCorrection = -targetDistance + hit.distance;
-			Debug.Log("Correction Distance: " + distanceCorrection);
+			//Debug.Log("Correction Distance: " + distanceCorrection);
 		}
 
-		targetDistance = Mathf.Clamp(Mathf.SmoothStep(targetDistance, targetDistance - scrollWheel, Time.deltaTime * zoomSpeed), minDistance, maxDistance);
+		//targetDistance = Mathf.Clamp(Mathf.SmoothStep(targetDistance, targetDistance - scrollWheel, Time.deltaTime * zoomSpeed), minDistance, maxDistance);
+		targetDistance = Mathf.Clamp(targetDistance - (scrollWheel * zoomSpeed* Time.deltaTime ), minDistance,maxDistance);
 		currentDistance = Mathf.Clamp(targetDistance + distanceCorrection, minDistance, maxDistance);
 
 		xAngle = ClampAngle(xAngle, minXAngle, maxXAngle);
+
 		if(currentDistance == minDistance && distanceCorrection != 0 && (mouseY) < 0) { // stop rotating when at minDistance with correction
 			xAngle = lastXAngle;
 		}
